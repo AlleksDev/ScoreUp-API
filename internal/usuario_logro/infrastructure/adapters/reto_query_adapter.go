@@ -17,7 +17,7 @@ func NewRetoQueryAdapter(conn *core.Conn_MySQL) *RetoQueryAdapter {
 }
 
 func (a *RetoQueryAdapter) CountCompletedByUser(userID int64) (int, error) {
-	query := `SELECT COUNT(1) FROM retos WHERE id_usuario = ? AND estado = 'completado'`
+	query := `SELECT COUNT(1) FROM usuario_retos WHERE id_usuario = ? AND estado = 'completado'`
 
 	var count int
 	err := a.conn.DB.QueryRow(query, userID).Scan(&count)

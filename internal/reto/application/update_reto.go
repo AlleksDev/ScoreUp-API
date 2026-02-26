@@ -24,6 +24,9 @@ func (uc *UpdateReto) Execute(reto *entities.Reto) error {
 		return fmt.Errorf("reto no encontrado")
 	}
 
+	// Preservar el UserID del creador original
+	reto.UserID = existing.UserID
+
 	if err := uc.repo.Update(reto); err != nil {
 		return fmt.Errorf("error al actualizar reto: %v", err)
 	}

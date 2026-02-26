@@ -44,9 +44,7 @@ func (ctrl *CreateRetoController) Handle(c *gin.Context) {
 		Subject:       req.Subject,
 		Description:   req.Description,
 		Goal:          req.Goal,
-		Progress:      0,
 		PointsAwarded: req.PointsAwarded,
-		Status:        "activo",
 	}
 
 	if reto.PointsAwarded == 0 {

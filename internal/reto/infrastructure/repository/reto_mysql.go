@@ -18,8 +18,8 @@ func NewRetoMySQLRepository(conn *core.Conn_MySQL) *RetoMySQLRepository {
 
 func (r *RetoMySQLRepository) Save(reto *entities.Reto) error {
 	query := `
-		INSERT INTO retos (id_usuario, materia, descripcion, meta, progreso, puntos_otorgados, fecha_limite, estado)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+		INSERT INTO retos (id_usuario, materia, descripcion, meta, puntos_otorgados, fecha_limite)
+		VALUES (?, ?, ?, ?, ?, ?)`
 
 	result, err := r.conn.DB.Exec(
 		query,
@@ -27,10 +27,8 @@ func (r *RetoMySQLRepository) Save(reto *entities.Reto) error {
 		reto.Subject,
 		reto.Description,
 		reto.Goal,
-		reto.Progress,
 		reto.PointsAwarded,
 		reto.Deadline,
-		reto.Status,
 	)
 
 	if err != nil {
@@ -49,7 +47,7 @@ func (r *RetoMySQLRepository) Save(reto *entities.Reto) error {
 
 func (r *RetoMySQLRepository) GetByID(id int64) (*entities.Reto, error) {
 	query := `
-		SELECT id_reto, id_usuario, materia, descripcion, meta, progreso, puntos_otorgados, fecha_limite, estado, fecha_creacion
+		SELECT id_reto, id_usuario, materia, descripcion, meta, puntos_otorgados, fecha_limite, fecha_creacion
 		FROM retos
 		WHERE id_reto = ?`
 
@@ -64,10 +62,8 @@ func (r *RetoMySQLRepository) GetByID(id int64) (*entities.Reto, error) {
 		&reto.Subject,
 		&reto.Description,
 		&reto.Goal,
-		&reto.Progress,
 		&reto.PointsAwarded,
 		&deadline,
-		&reto.Status,
 		&reto.CreatedAt,
 	)
 
@@ -85,16 +81,15 @@ func (r *RetoMySQLRepository) GetByID(id int64) (*entities.Reto, error) {
 	return &reto, nil
 }
 
-func (r *RetoMySQLRepository) GetByUserID(userID int64) ([]*entities.Reto, error) {
+func (r *RetoMySQLRepository) GetAll() ([]*entities.Reto, error) {
 	query := `
-		SELECT id_reto, id_usuario, materia, descripcion, meta, progreso, puntos_otorgados, fecha_limite, estado, fecha_creacion
+		SELECT id_reto, id_usuario, materia, descripcion, meta, puntos_otorgados, fecha_limite, fecha_creacion
 		FROM retos
-		WHERE id_usuario = ?
 		ORDER BY fecha_creacion DESC`
 
-	rows, err := r.conn.DB.Query(query, userID)
+	rows, err := r.conn.DB.Query(query)
 	if err != nil {
-		return nil, fmt.Errorf("error obteniendo retos del usuario: %w", err)
+		return nil, fmt.Errorf("error obteniendo retos: %w", err)
 	}
 	defer rows.Close()
 
@@ -110,10 +105,52 @@ func (r *RetoMySQLRepository) GetByUserID(userID int64) ([]*entities.Reto, error
 			&reto.Subject,
 			&reto.Description,
 			&reto.Goal,
-			&reto.Progress,
 			&reto.PointsAwarded,
 			&deadline,
-			&reto.Status,
+			&reto.CreatedAt,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("error escaneando reto: %w", err)
+		}
+
+		if deadline.Valid {
+			reto.Deadline = &deadline.Time
+		}
+
+		retos = append(retos, &reto)
+	}
+
+	return retos, nil
+}
+
+func (r *RetoMySQLRepository) GetByCreator(userID int64) ([]*entities.Reto, error) {
+	query := `
+		SELECT id_reto, id_usuario, materia, descripcion, meta, puntos_otorgados, fecha_limite, fecha_creacion
+		FROM retos
+		WHERE id_usuario = ?
+		ORDER BY fecha_creacion DESC`
+
+	rows, err := r.conn.DB.Query(query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("error obteniendo retos del creador: %w", err)
+	}
+	defer rows.Close()
+
+	var retos []*entities.Reto
+
+	for rows.Next() {
+		var reto entities.Reto
+		var deadline sql.NullTime
+
+		err := rows.Scan(
+			&reto.ID,
+			&reto.UserID,
+			&reto.Subject,
+			&reto.Description,
+			&reto.Goal,
+			&reto.PointsAwarded,
+			&deadline,
 			&reto.CreatedAt,
 		)
 
@@ -134,7 +171,7 @@ func (r *RetoMySQLRepository) GetByUserID(userID int64) ([]*entities.Reto, error
 func (r *RetoMySQLRepository) Update(reto *entities.Reto) error {
 	query := `
 		UPDATE retos
-		SET materia = ?, descripcion = ?, meta = ?, progreso = ?, puntos_otorgados = ?, fecha_limite = ?, estado = ?
+		SET materia = ?, descripcion = ?, meta = ?, puntos_otorgados = ?, fecha_limite = ?
 		WHERE id_reto = ?`
 
 	result, err := r.conn.DB.Exec(
@@ -142,10 +179,8 @@ func (r *RetoMySQLRepository) Update(reto *entities.Reto) error {
 		reto.Subject,
 		reto.Description,
 		reto.Goal,
-		reto.Progress,
 		reto.PointsAwarded,
 		reto.Deadline,
-		reto.Status,
 		reto.ID,
 	)
 

@@ -22,10 +22,8 @@ type updateRetoRequest struct {
 	Subject       string  `json:"subject" binding:"required"`
 	Description   string  `json:"description" binding:"required"`
 	Goal          int     `json:"goal" binding:"required,min=1"`
-	Progress      int     `json:"progress"`
 	PointsAwarded int     `json:"points_awarded"`
 	Deadline      *string `json:"deadline"`
-	Status        string  `json:"status" binding:"required,oneof=activo completado"`
 }
 
 func (ctrl *UpdateRetoController) Handle(c *gin.Context) {
@@ -47,9 +45,7 @@ func (ctrl *UpdateRetoController) Handle(c *gin.Context) {
 		Subject:       req.Subject,
 		Description:   req.Description,
 		Goal:          req.Goal,
-		Progress:      req.Progress,
 		PointsAwarded: req.PointsAwarded,
-		Status:        req.Status,
 	}
 
 	if req.Deadline != nil {

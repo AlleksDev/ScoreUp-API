@@ -26,10 +26,18 @@ func (uc *GetReto) ExecuteByID(id int64) (*entities.Reto, error) {
 	return reto, nil
 }
 
-func (uc *GetReto) ExecuteByUserID(userID int64) ([]*entities.Reto, error) {
-	retos, err := uc.repo.GetByUserID(userID)
+func (uc *GetReto) ExecuteAll() ([]*entities.Reto, error) {
+	retos, err := uc.repo.GetAll()
 	if err != nil {
-		return nil, fmt.Errorf("error al obtener retos del usuario: %v", err)
+		return nil, fmt.Errorf("error al obtener retos: %v", err)
+	}
+	return retos, nil
+}
+
+func (uc *GetReto) ExecuteByCreator(userID int64) ([]*entities.Reto, error) {
+	retos, err := uc.repo.GetByCreator(userID)
+	if err != nil {
+		return nil, fmt.Errorf("error al obtener retos del creador: %v", err)
 	}
 	return retos, nil
 }

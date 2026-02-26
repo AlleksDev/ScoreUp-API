@@ -8,9 +8,7 @@ type Reto struct {
 	Subject       string
 	Description   string
 	Goal          int
-	Progress      int
 	PointsAwarded int
 	Deadline      *time.Time
-	Status        string
 	CreatedAt     time.Time
 }

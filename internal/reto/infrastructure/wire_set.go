@@ -35,7 +35,8 @@ func (m *RetoModule) RegisterRoutes(r *gin.RouterGroup) {
 	retos := r.Group("/retos")
 	{
 		retos.POST("", m.CreateCtrl.Handle)
-		retos.GET("", m.GetCtrl.HandleGetByUserID)
+		retos.GET("", m.GetCtrl.HandleGetAll)
+		retos.GET("/mine", m.GetCtrl.HandleGetByCreator)
 		retos.GET("/:id", m.GetCtrl.HandleGetByID)
 		retos.PUT("/:id", m.UpdateCtrl.Handle)
 		retos.DELETE("/:id", m.DeleteCtrl.Handle)
@@ -43,15 +44,22 @@ func (m *RetoModule) RegisterRoutes(r *gin.RouterGroup) {
 }
 
 var RetoProviderSet = wire.NewSet(
+	// Repository
 	repository.NewRetoMySQLRepository,
 	wire.Bind(new(domainRepo.RetoRepository), new(*repository.RetoMySQLRepository)),
+
+	// Use Cases
 	app.NewCreateReto,
 	app.NewGetReto,
 	app.NewUpdateReto,
 	app.NewDeleteReto,
+
+	// Controllers
 	controllers.NewCreateRetoController,
 	controllers.NewGetRetoController,
 	controllers.NewUpdateRetoController,
 	controllers.NewDeleteRetoController,
+
+	// Module
 	NewRetoModule,
 )

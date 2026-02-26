@@ -35,14 +35,26 @@ func (ctrl *GetRetoController) HandleGetByID(c *gin.Context) {
 	})
 }
 
-func (ctrl *GetRetoController) HandleGetByUserID(c *gin.Context) {
+func (ctrl *GetRetoController) HandleGetAll(c *gin.Context) {
+	retos, err := ctrl.useCase.ExecuteAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"retos": retos,
+	})
+}
+
+func (ctrl *GetRetoController) HandleGetByCreator(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuario no autenticado"})
 		return
 	}
 
-	retos, err := ctrl.useCase.ExecuteByUserID(userID.(int64))
+	retos, err := ctrl.useCase.ExecuteByCreator(userID.(int64))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
