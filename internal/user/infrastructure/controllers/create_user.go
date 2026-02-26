@@ -18,8 +18,7 @@ func NewCreateUserController(useCase *app.CreateUser) *CreateUserController {
 }
 
 type createUserRequest struct {
-	Username string `json:"username" binding:"required,min=3"`
-	Name     string `json:"name" binding:"required"`
+	Name   string `json:"nombre" binding:"required,min=3"`
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=6"`
 	Phone    string `json:"phone" binding:"required"`
