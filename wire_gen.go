@@ -8,6 +8,7 @@ package main
 
 import (
 	"github.com/AlleksDev/ScoreUp-API/internal/core"
+	"github.com/AlleksDev/ScoreUp-API/internal/websocket"
 
 	userApp "github.com/AlleksDev/ScoreUp-API/internal/user/application"
 	userInfra "github.com/AlleksDev/ScoreUp-API/internal/user/infrastructure"
@@ -48,6 +49,8 @@ func InitializeApp() (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+	hub := websocket.NewHub()
+	wsHandler := websocket.NewWSHandler(hub)
 
 	// ── Feature: User ──
 	userMySQLRepository := userRepo.NewUserMySQLRepository(connMySQL)
@@ -67,10 +70,10 @@ func InitializeApp() (*App, error) {
 	getReto := retoApp.NewGetReto(retoMySQLRepository)
 	updateReto := retoApp.NewUpdateReto(retoMySQLRepository)
 	deleteReto := retoApp.NewDeleteReto(retoMySQLRepository)
-	createRetoController := retoControllers.NewCreateRetoController(createReto)
+	createRetoController := retoControllers.NewCreateRetoController(createReto, getReto, hub)
 	getRetoController := retoControllers.NewGetRetoController(getReto)
-	updateRetoController := retoControllers.NewUpdateRetoController(updateReto)
-	deleteRetoController := retoControllers.NewDeleteRetoController(deleteReto)
+	updateRetoController := retoControllers.NewUpdateRetoController(updateReto, getReto, hub)
+	deleteRetoController := retoControllers.NewDeleteRetoController(deleteReto, getReto, hub)
 	retoModule := retoInfra.NewRetoModule(createRetoController, getRetoController, updateRetoController, deleteRetoController)
 
 	// ── Feature: Logro ──
@@ -108,13 +111,13 @@ func InitializeApp() (*App, error) {
 	getUsuarioRetos := urApp.NewGetUsuarioRetos(usuarioRetoMySQLRepository)
 	leaveReto := urApp.NewLeaveReto(usuarioRetoMySQLRepository)
 	joinRetoController := urControllers.NewJoinRetoController(joinReto)
-	updateProgressController := urControllers.NewUpdateProgressController(updateProgress)
+	updateProgressController := urControllers.NewUpdateProgressController(updateProgress, getRank, hub)
 	getUsuarioRetosController := urControllers.NewGetUsuarioRetosController(getUsuarioRetos)
 	leaveRetoController := urControllers.NewLeaveRetoController(leaveReto)
 	usuarioRetoModule := urInfra.NewUsuarioRetoModule(joinRetoController, updateProgressController, getUsuarioRetosController, leaveRetoController)
 
 	// ── Composición final ──
-	engine := ProvideGinEngine(userModule, retoModule, logroModule, usuarioRetoModule, usuarioLogroModule)
-	app := NewApp(engine)
+	engine := ProvideGinEngine(userModule, retoModule, logroModule, usuarioRetoModule, usuarioLogroModule, wsHandler)
+	app := NewApp(engine, hub)
 	return app, nil
 }

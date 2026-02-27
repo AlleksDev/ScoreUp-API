@@ -1,21 +1,25 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 	"time"
 
 	app "github.com/AlleksDev/ScoreUp-API/internal/reto/application"
 	"github.com/AlleksDev/ScoreUp-API/internal/reto/domain/entities"
+	"github.com/AlleksDev/ScoreUp-API/internal/websocket"
 	"github.com/gin-gonic/gin"
 )
 
 type UpdateRetoController struct {
-	useCase *app.UpdateReto
+	useCase    *app.UpdateReto
+	getUseCase *app.GetReto
+	hub        *websocket.Hub
 }
 
-func NewUpdateRetoController(useCase *app.UpdateReto) *UpdateRetoController {
-	return &UpdateRetoController{useCase: useCase}
+func NewUpdateRetoController(useCase *app.UpdateReto, getReto *app.GetReto, hub *websocket.Hub) *UpdateRetoController {
+	return &UpdateRetoController{useCase: useCase, getUseCase: getReto, hub: hub}
 }
 
 type updateRetoRequest struct {
@@ -66,4 +70,16 @@ func (ctrl *UpdateRetoController) Handle(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Reto actualizado exitosamente",
 	})
+
+	// Push: notificar a clientes WS suscritos al canal "retos".
+	go ctrl.broadcastRetos()
+}
+
+func (ctrl *UpdateRetoController) broadcastRetos() {
+	retos, err := ctrl.getUseCase.ExecuteAll()
+	if err != nil {
+		log.Printf("[WS] Error obteniendo retos para broadcast: %v", err)
+		return
+	}
+	ctrl.hub.BroadcastJSON("retos", gin.H{"retos": retos})
 }

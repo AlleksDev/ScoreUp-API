@@ -1,19 +1,24 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
+	userApp "github.com/AlleksDev/ScoreUp-API/internal/user/application"
 	app "github.com/AlleksDev/ScoreUp-API/internal/usuario_reto/application"
+	"github.com/AlleksDev/ScoreUp-API/internal/websocket"
 	"github.com/gin-gonic/gin"
 )
 
 type UpdateProgressController struct {
-	useCase *app.UpdateProgress
+	useCase   *app.UpdateProgress
+	getRankUC *userApp.GetRank
+	hub       *websocket.Hub
 }
 
-func NewUpdateProgressController(useCase *app.UpdateProgress) *UpdateProgressController {
-	return &UpdateProgressController{useCase: useCase}
+func NewUpdateProgressController(useCase *app.UpdateProgress, getRank *userApp.GetRank, hub *websocket.Hub) *UpdateProgressController {
+	return &UpdateProgressController{useCase: useCase, getRankUC: getRank, hub: hub}
 }
 
 type updateProgressRequest struct {
@@ -56,4 +61,16 @@ func (ctrl *UpdateProgressController) Handle(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+
+	// Push: notificar ranking actualizado a clientes WS del canal "rank".
+	go ctrl.broadcastRank()
+}
+
+func (ctrl *UpdateProgressController) broadcastRank() {
+	rank, err := ctrl.getRankUC.Execute()
+	if err != nil {
+		log.Printf("[WS] Error obteniendo ranking para broadcast: %v", err)
+		return
+	}
+	ctrl.hub.BroadcastJSON("rank", gin.H{"ranking": rank})
 }

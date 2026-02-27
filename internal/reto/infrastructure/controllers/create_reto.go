@@ -1,20 +1,24 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"time"
 
 	app "github.com/AlleksDev/ScoreUp-API/internal/reto/application"
 	"github.com/AlleksDev/ScoreUp-API/internal/reto/domain/entities"
+	"github.com/AlleksDev/ScoreUp-API/internal/websocket"
 	"github.com/gin-gonic/gin"
 )
 
 type CreateRetoController struct {
-	useCase *app.CreateReto
+	useCase    *app.CreateReto
+	getUseCase *app.GetReto
+	hub        *websocket.Hub
 }
 
-func NewCreateRetoController(useCase *app.CreateReto) *CreateRetoController {
-	return &CreateRetoController{useCase: useCase}
+func NewCreateRetoController(useCase *app.CreateReto, getReto *app.GetReto, hub *websocket.Hub) *CreateRetoController {
+	return &CreateRetoController{useCase: useCase, getUseCase: getReto, hub: hub}
 }
 
 type createRetoRequest struct {
@@ -70,4 +74,16 @@ func (ctrl *CreateRetoController) Handle(c *gin.Context) {
 		"message": "Reto creado exitosamente",
 		"id":      reto.ID,
 	})
+
+	// Push: notificar a clientes WS suscritos al canal "retos".
+	go ctrl.broadcastRetos()
+}
+
+func (ctrl *CreateRetoController) broadcastRetos() {
+	retos, err := ctrl.getUseCase.ExecuteAll()
+	if err != nil {
+		log.Printf("[WS] Error obteniendo retos para broadcast: %v", err)
+		return
+	}
+	ctrl.hub.BroadcastJSON("retos", gin.H{"retos": retos})
 }

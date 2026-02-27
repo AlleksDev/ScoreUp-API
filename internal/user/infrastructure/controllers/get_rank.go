@@ -3,8 +3,8 @@ package controllers
 import (
 	"net/http"
 
+	app "github.com/AlleksDev/ScoreUp-API/internal/user/application"
 	"github.com/gin-gonic/gin"
-	"github.com/AlleksDev/ScoreUp-API/internal/user/application"
 )
 
 type GetRankController struct {
@@ -25,7 +25,5 @@ func (ctrl *GetRankController) Handle(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"ranking": rank,
-	})
+	c.JSON(http.StatusOK, gin.H{"ranking": rank})
 }

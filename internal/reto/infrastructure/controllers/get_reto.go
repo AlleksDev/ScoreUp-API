@@ -42,9 +42,9 @@ func (ctrl *GetRetoController) HandleGetAll(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"retos": retos,
-	})
+	payload := gin.H{"retos": retos}
+
+	c.JSON(http.StatusOK, payload)
 }
 
 func (ctrl *GetRetoController) HandleGetByCreator(c *gin.Context) {

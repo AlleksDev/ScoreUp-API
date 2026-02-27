@@ -15,6 +15,7 @@ import (
 	userInfra "github.com/AlleksDev/ScoreUp-API/internal/user/infrastructure"
 	usuarioLogroInfra "github.com/AlleksDev/ScoreUp-API/internal/usuario_logro/infrastructure"
 	usuarioRetoInfra "github.com/AlleksDev/ScoreUp-API/internal/usuario_reto/infrastructure"
+	"github.com/AlleksDev/ScoreUp-API/internal/websocket"
 )
 
 // InitializeApp le dice a Wire: "construí un *App usando TODOS estos providers".
@@ -22,7 +23,9 @@ import (
 func InitializeApp() (*App, error) {
 	wire.Build(
 		// Infraestructura base
-		core.GetMySQLPool, // → *core.Conn_MySQL
+		core.GetMySQLPool,      // → *core.Conn_MySQL
+		websocket.NewHub,       // → *websocket.Hub
+		websocket.NewWSHandler, // → *websocket.WSHandler
 
 		// Feature: User (repo → adapters → use cases → controllers → module)
 		userInfra.UserProviderSet,
