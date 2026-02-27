@@ -112,8 +112,8 @@ func (r *UserMySQLRepository) Update(user *entities.User) error {
 		user.Email,
 		user.Password,
 		user.TotalScore,
-		
-user.ID,
+
+		user.ID,
 	)
 
 	if err != nil {
@@ -139,9 +139,9 @@ func (r *UserMySQLRepository) Delete(id int64) error {
 	return nil
 }
 
-func (r *UserMySQLRepository) GetRank() ([]*entities.User, error) {
+func (r *UserMySQLRepository) GetRank() ([]entities.RankUser, error) {
 	query := `
-		SELECT id_usuario, nombre, email, puntos_totales, fecha_registro
+		SELECT id_usuario, nombre, puntos_totales
 		FROM usuarios
 		ORDER BY puntos_totales DESC
 		LIMIT 10`
@@ -152,24 +152,22 @@ func (r *UserMySQLRepository) GetRank() ([]*entities.User, error) {
 	}
 	defer rows.Close()
 
-	var users []*entities.User
+	var users []entities.RankUser
 
 	for rows.Next() {
-		var user entities.User
+		var user entities.RankUser
 
 		err := rows.Scan(
 			&user.ID,
 			&user.Name,
-			&user.Email,
 			&user.TotalScore,
-			&user.CreatedAt,
 		)
 
 		if err != nil {
 			return nil, fmt.Errorf("error escaneando ranking: %w", err)
 		}
 
-		users = append(users, &user)
+		users = append(users, user)
 	}
 
 	return users, nil
