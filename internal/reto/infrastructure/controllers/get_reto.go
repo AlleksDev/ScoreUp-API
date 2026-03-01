@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/AlleksDev/ScoreUp-API/internal/middleware"
 	app "github.com/AlleksDev/ScoreUp-API/internal/reto/application"
 	"github.com/gin-gonic/gin"
 )
@@ -48,13 +49,12 @@ func (ctrl *GetRetoController) HandleGetAll(c *gin.Context) {
 }
 
 func (ctrl *GetRetoController) HandleGetByCreator(c *gin.Context) {
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuario no autenticado"})
+	uid, ok := middleware.GetUserID(c)
+	if !ok {
 		return
 	}
 
-	retos, err := ctrl.useCase.ExecuteByCreator(userID.(int64))
+	retos, err := ctrl.useCase.ExecuteByCreator(uid)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

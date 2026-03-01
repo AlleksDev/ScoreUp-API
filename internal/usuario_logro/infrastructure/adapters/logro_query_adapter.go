@@ -45,5 +45,9 @@ func (a *LogroQueryAdapter) GetAllLogros() ([]*logroEntities.Logro, error) {
 		logros = append(logros, &l)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterando logros: %w", err)
+	}
+
 	return logros, nil
 }

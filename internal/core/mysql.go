@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -29,6 +30,11 @@ func GetMySQLPool() (*Conn_MySQL, error) {
 
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(5)
+	// Cerrar conexiones que llevan más de 5 minutos — evita que MySQL las
+	// cierre por timeout y la API reciba "broken pipe" / "invalid connection".
+	db.SetConnMaxLifetime(5 * time.Minute)
+	// Cerrar conexiones idle después de 3 minutos.
+	db.SetConnMaxIdleTime(3 * time.Minute)
 
 	if err := db.Ping(); err != nil {
 		db.Close()

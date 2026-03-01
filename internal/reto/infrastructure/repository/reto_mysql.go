@@ -121,6 +121,10 @@ func (r *RetoMySQLRepository) GetAll() ([]*entities.Reto, error) {
 		retos = append(retos, &reto)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterando retos: %w", err)
+	}
+
 	return retos, nil
 }
 
@@ -165,6 +169,10 @@ func (r *RetoMySQLRepository) GetByCreator(userID int64) ([]*entities.Reto, erro
 		retos = append(retos, &reto)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterando retos del creador: %w", err)
+	}
+
 	return retos, nil
 }
 
@@ -188,7 +196,10 @@ func (r *RetoMySQLRepository) Update(reto *entities.Reto) error {
 		return fmt.Errorf("error actualizando reto: %w", err)
 	}
 
-	rowsAffected, _ := result.RowsAffected()
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error obteniendo rows affected: %w", err)
+	}
 	if rowsAffected == 0 {
 		return fmt.Errorf("no se encontró reto con id %d", reto.ID)
 	}

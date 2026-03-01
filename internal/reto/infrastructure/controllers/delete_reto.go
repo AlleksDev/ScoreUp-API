@@ -3,6 +3,7 @@ package controllers
 import (
 	"log"
 	"net/http"
+	"runtime/debug"
 	"strconv"
 
 	app "github.com/AlleksDev/ScoreUp-API/internal/reto/application"
@@ -39,7 +40,14 @@ func (ctrl *DeleteRetoController) Handle(c *gin.Context) {
 	})
 
 	// Push: notificar a clientes WS suscritos al canal "retos".
-	go ctrl.broadcastRetos()
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("[PANIC][broadcastRetos] recovered: %v\n%s", r, debug.Stack())
+			}
+		}()
+		ctrl.broadcastRetos()
+	}()
 }
 
 func (ctrl *DeleteRetoController) broadcastRetos() {

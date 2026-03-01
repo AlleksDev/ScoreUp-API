@@ -3,8 +3,10 @@ package controllers
 import (
 	"log"
 	"net/http"
+	"runtime/debug"
 	"time"
 
+	"github.com/AlleksDev/ScoreUp-API/internal/middleware"
 	app "github.com/AlleksDev/ScoreUp-API/internal/reto/application"
 	"github.com/AlleksDev/ScoreUp-API/internal/reto/domain/entities"
 	"github.com/AlleksDev/ScoreUp-API/internal/websocket"
@@ -37,14 +39,13 @@ func (ctrl *CreateRetoController) Handle(c *gin.Context) {
 		return
 	}
 
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuario no autenticado"})
+	uid, ok := middleware.GetUserID(c)
+	if !ok {
 		return
 	}
 
 	reto := entities.Reto{
-		UserID:        userID.(int64),
+		UserID:        uid,
 		Subject:       req.Subject,
 		Description:   req.Description,
 		Goal:          req.Goal,
@@ -76,7 +77,14 @@ func (ctrl *CreateRetoController) Handle(c *gin.Context) {
 	})
 
 	// Push: notificar a clientes WS suscritos al canal "retos".
-	go ctrl.broadcastRetos()
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("[PANIC][broadcastRetos] recovered: %v\n%s", r, debug.Stack())
+			}
+		}()
+		ctrl.broadcastRetos()
+	}()
 }
 
 func (ctrl *CreateRetoController) broadcastRetos() {

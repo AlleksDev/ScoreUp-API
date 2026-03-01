@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/AlleksDev/ScoreUp-API/internal/middleware"
 	app "github.com/AlleksDev/ScoreUp-API/internal/usuario_logro/application"
 	"github.com/gin-gonic/gin"
 )
@@ -19,13 +20,12 @@ func NewEvaluateLogrosController(useCase *app.EvaluateLogros) *EvaluateLogrosCon
 // autenticado haya cumplido. Se invoca internamente después de completar
 // un reto o al actualizar puntos.
 func (ctrl *EvaluateLogrosController) Handle(c *gin.Context) {
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuario no autenticado"})
+	uid, ok := middleware.GetUserID(c)
+	if !ok {
 		return
 	}
 
-	awarded, err := ctrl.useCase.Execute(userID.(int64))
+	awarded, err := ctrl.useCase.Execute(uid)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

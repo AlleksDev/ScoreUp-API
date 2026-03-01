@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/AlleksDev/ScoreUp-API/internal/middleware"
 	app "github.com/AlleksDev/ScoreUp-API/internal/usuario_reto/application"
 	"github.com/gin-gonic/gin"
 )
@@ -21,9 +22,8 @@ type joinRetoRequest struct {
 }
 
 func (ctrl *JoinRetoController) Handle(c *gin.Context) {
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuario no autenticado"})
+	uid, ok := middleware.GetUserID(c)
+	if !ok {
 		return
 	}
 
@@ -33,7 +33,7 @@ func (ctrl *JoinRetoController) Handle(c *gin.Context) {
 		return
 	}
 
-	err := ctrl.useCase.Execute(userID.(int64), req.RetoID)
+	err := ctrl.useCase.Execute(uid, req.RetoID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -46,9 +46,8 @@ func (ctrl *JoinRetoController) Handle(c *gin.Context) {
 
 // HandleByParam une al usuario al reto indicado por parámetro de ruta
 func (ctrl *JoinRetoController) HandleByParam(c *gin.Context) {
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuario no autenticado"})
+	uid, ok := middleware.GetUserID(c)
+	if !ok {
 		return
 	}
 
@@ -59,7 +58,7 @@ func (ctrl *JoinRetoController) HandleByParam(c *gin.Context) {
 		return
 	}
 
-	err = ctrl.useCase.Execute(userID.(int64), retoID)
+	err = ctrl.useCase.Execute(uid, retoID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

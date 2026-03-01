@@ -3,6 +3,7 @@ package websocket
 import (
 	"encoding/json"
 	"log"
+	"runtime/debug"
 	"sync"
 	"sync/atomic"
 )
@@ -35,6 +36,11 @@ func NewHub() *Hub {
 
 // Run es el event-loop principal. Debe ejecutarse en su propia goroutine.
 func (h *Hub) Run() {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("[PANIC][WS Hub.Run] recovered: %v\n%s", r, debug.Stack())
+		}
+	}()
 	for {
 		select {
 		case <-h.stop:

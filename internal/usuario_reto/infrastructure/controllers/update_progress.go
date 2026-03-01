@@ -3,8 +3,10 @@ package controllers
 import (
 	"log"
 	"net/http"
+	"runtime/debug"
 	"strconv"
 
+	"github.com/AlleksDev/ScoreUp-API/internal/middleware"
 	userApp "github.com/AlleksDev/ScoreUp-API/internal/user/application"
 	app "github.com/AlleksDev/ScoreUp-API/internal/usuario_reto/application"
 	"github.com/AlleksDev/ScoreUp-API/internal/websocket"
@@ -26,9 +28,8 @@ type updateProgressRequest struct {
 }
 
 func (ctrl *UpdateProgressController) Handle(c *gin.Context) {
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuario no autenticado"})
+	uid, ok := middleware.GetUserID(c)
+	if !ok {
 		return
 	}
 
@@ -45,7 +46,7 @@ func (ctrl *UpdateProgressController) Handle(c *gin.Context) {
 		return
 	}
 
-	result, err := ctrl.useCase.Execute(userID.(int64), retoID, req.Progress)
+	result, err := ctrl.useCase.Execute(uid, retoID, req.Progress)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -63,7 +64,14 @@ func (ctrl *UpdateProgressController) Handle(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 
 	// Push: notificar ranking actualizado a clientes WS del canal "rank".
-	go ctrl.broadcastRank()
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("[PANIC][broadcastRank] recovered: %v\n%s", r, debug.Stack())
+			}
+		}()
+		ctrl.broadcastRank()
+	}()
 }
 
 func (ctrl *UpdateProgressController) broadcastRank() {

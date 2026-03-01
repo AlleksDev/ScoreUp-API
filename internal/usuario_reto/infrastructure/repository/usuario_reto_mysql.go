@@ -58,6 +58,10 @@ func (r *UsuarioRetoMySQLRepository) GetByUserID(userID int64) ([]*entities.Usua
 		results = append(results, &ur)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterando retos del usuario: %w", err)
+	}
+
 	return results, nil
 }
 
@@ -88,6 +92,10 @@ func (r *UsuarioRetoMySQLRepository) GetByRetoID(retoID int64) ([]*entities.Usua
 			return nil, fmt.Errorf("error escaneando usuario_reto: %w", err)
 		}
 		results = append(results, &ur)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterando usuarios del reto: %w", err)
 	}
 
 	return results, nil

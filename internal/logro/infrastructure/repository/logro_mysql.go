@@ -103,6 +103,10 @@ func (r *LogroMySQLRepository) GetAll() ([]*entities.Logro, error) {
 		logros = append(logros, &logro)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterando logros: %w", err)
+	}
+
 	return logros, nil
 }
 
@@ -125,7 +129,10 @@ func (r *LogroMySQLRepository) Update(logro *entities.Logro) error {
 		return fmt.Errorf("error actualizando logro: %w", err)
 	}
 
-	rowsAffected, _ := result.RowsAffected()
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error obteniendo rows affected: %w", err)
+	}
 	if rowsAffected == 0 {
 		return fmt.Errorf("no se encontró logro con id %d", logro.ID)
 	}

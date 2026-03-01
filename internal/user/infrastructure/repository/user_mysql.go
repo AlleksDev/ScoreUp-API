@@ -120,7 +120,10 @@ func (r *UserMySQLRepository) Update(user *entities.User) error {
 		return fmt.Errorf("error actualizando usuario: %w", err)
 	}
 
-	rowsAffected, _ := result.RowsAffected()
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error obteniendo rows affected: %w", err)
+	}
 	if rowsAffected == 0 {
 		return fmt.Errorf("no se encontró usuario con id %d", user.ID)
 	}
@@ -168,6 +171,10 @@ func (r *UserMySQLRepository) GetRank() ([]entities.RankUser, error) {
 		}
 
 		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterando ranking: %w", err)
 	}
 
 	return users, nil

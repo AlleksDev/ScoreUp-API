@@ -57,6 +57,10 @@ func (r *UsuarioLogroMySQLRepository) GetByUserID(userID int64) ([]*entities.Usu
 		results = append(results, &ul)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterando usuario_logros: %w", err)
+	}
+
 	return results, nil
 }
 

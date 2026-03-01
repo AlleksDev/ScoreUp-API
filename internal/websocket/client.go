@@ -1,6 +1,8 @@
 package websocket
 
 import (
+	"log"
+	"runtime/debug"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -37,6 +39,9 @@ func NewClient(hub *Hub, conn *websocket.Conn, role, userID, channel string) *Cl
 // Se ejecuta en su propia goroutine por cada conexión.
 func (c *Client) ReadPump() {
 	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("[PANIC][WS ReadPump] user=%s channel=%s: %v\n%s", c.userID, c.channel, r, debug.Stack())
+		}
 		c.hub.unregister <- c
 		c.conn.Close()
 	}()
@@ -65,6 +70,9 @@ func (c *Client) ReadPump() {
 func (c *Client) WritePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("[PANIC][WS WritePump] user=%s channel=%s: %v\n%s", c.userID, c.channel, r, debug.Stack())
+		}
 		ticker.Stop()
 		c.conn.Close()
 	}()

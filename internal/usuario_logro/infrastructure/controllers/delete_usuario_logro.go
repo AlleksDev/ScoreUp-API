@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/AlleksDev/ScoreUp-API/internal/middleware"
 	app "github.com/AlleksDev/ScoreUp-API/internal/usuario_logro/application"
 	"github.com/gin-gonic/gin"
 )
@@ -17,9 +18,8 @@ func NewDeleteUsuarioLogroController(useCase *app.DeleteUsuarioLogro) *DeleteUsu
 }
 
 func (ctrl *DeleteUsuarioLogroController) Handle(c *gin.Context) {
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuario no autenticado"})
+	uid, ok := middleware.GetUserID(c)
+	if !ok {
 		return
 	}
 
@@ -30,7 +30,7 @@ func (ctrl *DeleteUsuarioLogroController) Handle(c *gin.Context) {
 		return
 	}
 
-	err = ctrl.useCase.Execute(userID.(int64), logroID)
+	err = ctrl.useCase.Execute(uid, logroID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
