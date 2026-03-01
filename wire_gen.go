@@ -62,7 +62,9 @@ func InitializeApp() (*App, error) {
 	createUserController := userControllers.NewCreateUserController(createUser)
 	loginUserController := userControllers.NewLoginUserController(loginUser)
 	getRankController := userControllers.NewGetRankController(getRank)
-	userModule := userInfra.NewUserModule(createUserController, loginUserController, getRankController)
+	getUser := userApp.NewGetUser(userMySQLRepository)
+	getUserController := userControllers.NewGetUserController(getUser)
+	userModule := userInfra.NewUserModule(createUserController, loginUserController, getRankController, getUserController)
 
 	// ── Feature: Reto ──
 	retoMySQLRepository := retoRepo.NewRetoMySQLRepository(connMySQL)

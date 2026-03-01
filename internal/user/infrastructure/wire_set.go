@@ -16,17 +16,20 @@ type UserModule struct {
 	CreateCtrl *controllers.CreateUserController
 	LoginCtrl  *controllers.LoginUserController
 	RankCtrl   *controllers.GetRankController
+	GetCtrl   *controllers.GetUserController
 }
 
 func NewUserModule(
 	create *controllers.CreateUserController,
 	login *controllers.LoginUserController,
 	rank *controllers.GetRankController,
+	get *controllers.GetUserController,
 ) *UserModule {
 	return &UserModule{
 		CreateCtrl: create,
 		LoginCtrl:  login,
 		RankCtrl:   rank,
+		GetCtrl:    get,
 	}
 }
 
@@ -37,6 +40,7 @@ func (m *UserModule) RegisterRoutes(r *gin.Engine) {
 		users.POST("/register", m.CreateCtrl.Handle)
 		users.POST("/login", m.LoginCtrl.Handle)
 		users.GET("/rank", m.RankCtrl.Handle)
+		users.GET("/:id", m.GetCtrl.Handle)
 	}
 }
 
@@ -56,12 +60,13 @@ var UserProviderSet = wire.NewSet(
 	app.NewCreateUser,
 	app.NewLoginUser,
 	app.NewGetRank,
+	app.NewGetUser,
 
 	// Controllers
 	controllers.NewCreateUserController,
 	controllers.NewLoginUserController,
 	controllers.NewGetRankController,
-
+	controllers.NewGetUserController,
 	// Module
 	NewUserModule,
 )
